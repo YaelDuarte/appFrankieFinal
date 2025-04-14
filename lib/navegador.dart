@@ -5,6 +5,7 @@ import 'package:myapp/pantallas/calculadora.dart';
 import 'package:myapp/pantallas/localizacion.dart';
 import 'package:myapp/pantallas/ingreso.dart';
 import 'package:myapp/pantallas/calendario.dart';
+import 'package:myapp/pantallas/personalizada.dart';
 
 class Navegador extends StatefulWidget {
   const Navegador({super.key});
@@ -37,6 +38,8 @@ class _NavegadorState extends State<Navegador> {
           _cuerpo = Localizacion(title: "Estilo GPS");
         case 5:
           _cuerpo = Calendario(title: "Calendario");
+        case 6:
+          _cuerpo = personalizada(title: "Personalizada Tarjetas");
         default:
           _cuerpo = Principal(title: "Principal");
       }
@@ -78,6 +81,10 @@ class _NavegadorState extends State<Navegador> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month),
             label: 'Calendario',
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.table_bar),
+            label: 'Tarjetas Perosnalizadas',
           ),
         ],
         backgroundColor: Colors.grey, // Asegurar fondo visible

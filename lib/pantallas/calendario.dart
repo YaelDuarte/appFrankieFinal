@@ -103,21 +103,36 @@ class _EventoForm extends StatefulWidget {
   const _EventoForm({required this.onGuardar});
 
   @override
-  State<_EventoForm> createState() => __EventoFormState();
+  State<_EventoForm> createState() => _EventoFormState();
 }
 
-class __EventoFormState extends State<_EventoForm> {
+class _EventoFormState extends State<_EventoForm> {
   final TextEditingController _nombreController = TextEditingController();
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
+  TimeOfDay? _horaInicio;
+  TimeOfDay? _horFinal;
 
-  Future<void> _seleccionarFecha(bool esInicio) async {
+
+  // AQUI ESTA LA FUNCION DE DESPLEGAR EL CALENDARIO DENTRO DE LOS EVENTOS
+  Future<void> _seleccionarFecha(bool esInicio,bool hoInicio) async {
+
+    //FUNCION PARA CALENDARIO
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
+
+    // FUNCION PARA EL RELOJ
+    final TimeOfDay? hora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour:00, minute: 00),
+    );
+
+
+    //IFS PARA VERIFICAR SI HAY ALGO NULO SELECCIONADO EN FECHA Y HORA
     if (picked != null) {
       setState(() {
         if (esInicio) {
@@ -127,8 +142,21 @@ class __EventoFormState extends State<_EventoForm> {
         }
       });
     }
+
+    if(hora != null){
+      setState(() {
+        if(hoInicio){
+          _horaInicio = hora;
+        }
+        else{
+          _horFinal = hora;
+        }
+      });
+    }
   }
 
+
+  //APARTADO DE DISEÑO DE LOS BOTONES
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -145,20 +173,21 @@ class __EventoFormState extends State<_EventoForm> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _seleccionarFecha(true),
-                  child: Text(_fechaInicio == null
+                  onPressed: () => _seleccionarFecha(true,true),
+                  child: Text(_fechaInicio == null || _horaInicio == null
                       ? "Inicio"
-                      : "Inicio: ${_fechaInicio!.toLocal().toString().split(' ')[0]}"),
+                      : "Inicio: ${_fechaInicio!.toLocal().toString().split(' ')[0]} ${_horaInicio!.format(context)}"),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _seleccionarFecha(false),
-                  child: Text(_fechaFin == null
+                  onPressed: () => _seleccionarFecha(false,false),
+                  child: Text(_fechaFin == null || _horFinal == null
                       ? "Fin"
-                      : "Fin: ${_fechaFin!.toLocal().toString().split(' ')[0]}"),
+                      : "Fin: ${_fechaFin!.toLocal().toString().split(' ')[0]} ${_horFinal!.format(context)}"),
                 ),
+
               ),
             ],
           ),
@@ -171,6 +200,15 @@ class __EventoFormState extends State<_EventoForm> {
                 widget.onGuardar(
                     _nombreController.text, _fechaInicio!, _fechaFin!);
               }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "El evento '${_nombreController.text}' sera el $_fechaInicio"
+                        " Y finalizara el $_fechaFin",
+                  ),
+                ),
+              );
+
             },
             child: const Text("Guardar"),
           ),
