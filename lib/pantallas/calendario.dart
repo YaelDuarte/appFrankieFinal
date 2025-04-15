@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class Calendario extends StatefulWidget {
   const Calendario({super.key, required this.title});
@@ -12,9 +13,10 @@ class Calendario extends StatefulWidget {
 class _CalendarioState extends State<Calendario> {
   DateTime _focusedDay = DateTime.now();
   DateTime _fechaSeleccionada = DateTime.now();
-  final Map<DateTime, List<String>> _eventos = {};
 
-  List<String> _obtenerEventosDelDia(DateTime fecha) {
+  final Map<DateTime, List<Map<String, dynamic>>> _eventos = {};
+
+  List<Map<String, dynamic>> _obtenerEventosDelDia(DateTime fecha) {
     return _eventos[DateTime.utc(fecha.year, fecha.month, fecha.day)] ?? [];
   }
 
@@ -42,6 +44,27 @@ class _CalendarioState extends State<Calendario> {
               CalendarFormat.month: 'Month',
             },
             eventLoader: _obtenerEventosDelDia,
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, date, events) {
+                if (events.isNotEmpty) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: (events as List<Map<String, dynamic>>).map((evento) {
+                      return Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        decoration: BoxDecoration(
+                          color: evento['color'] as Color,
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }
+                return null;
+              },
+            ),
           ),
           const SizedBox(height: 20),
           Align(
@@ -55,9 +78,11 @@ class _CalendarioState extends State<Calendario> {
           if (eventos.isEmpty)
             const Text("No hay nada para el día")
           else
-            ...eventos.map((e) => ListTile(
-              leading: const Icon(Icons.event),
-              title: Text(e),
+            ...eventos.map((evento) => ListTile(
+              leading: CircleAvatar(
+                backgroundColor: evento['color'] as Color,
+              ),
+              title: Text(evento['nombre'] as String),
             ))
         ],
       ),
@@ -77,17 +102,22 @@ class _CalendarioState extends State<Calendario> {
                   right: 20,
                   top: 20,
                 ),
-                child: _EventoForm(onGuardar: (nombre, inicio, fin) {
-                  setState(() {
-                    for (DateTime d = inicio;
-                    !d.isAfter(fin);
-                    d = d.add(const Duration(days: 1))) {
-                      final dia = DateTime.utc(d.year, d.month, d.day);
-                      _eventos.putIfAbsent(dia, () => []).add(nombre);
-                    }
-                  });
-                  Navigator.pop(context);
-                }),
+                child: _EventoForm(
+                  onGuardar: (nombre, inicio, fin, color) {
+                    setState(() {
+                      for (DateTime d = inicio;
+                      !d.isAfter(fin);
+                      d = d.add(const Duration(days: 1))) {
+                        final dia = DateTime.utc(d.year, d.month, d.day);
+                        _eventos.putIfAbsent(dia, () => []).add({
+                          'nombre': nombre,
+                          'color': color,
+                        });
+                      }
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
               );
             },
           );
@@ -99,13 +129,16 @@ class _CalendarioState extends State<Calendario> {
 }
 
 class _EventoForm extends StatefulWidget {
-  final void Function(String nombre, DateTime inicio, DateTime fin) onGuardar;
+  final void Function(String nombre, DateTime inicio, DateTime fin, Color color)
+  onGuardar;
+
   const _EventoForm({required this.onGuardar});
 
   @override
   State<_EventoForm> createState() => _EventoFormState();
 }
 
+// INICIO DE LA SELECCION DEL MINICALENDARIO PARA EVENTOS
 class _EventoFormState extends State<_EventoForm> {
   final TextEditingController _nombreController = TextEditingController();
   DateTime? _fechaInicio;
@@ -113,11 +146,10 @@ class _EventoFormState extends State<_EventoForm> {
   TimeOfDay? _horaInicio;
   TimeOfDay? _horFinal;
 
+  Color _colorSeleccionado = Colors.blue;
 
-  // AQUI ESTA LA FUNCION DE DESPLEGAR EL CALENDARIO DENTRO DE LOS EVENTOS
-  Future<void> _seleccionarFecha(bool esInicio,bool hoInicio) async {
-
-    //FUNCION PARA CALENDARIO
+  // LOGICA DE SELECCION DE FECHA
+  Future<void> _seleccionarFecha(bool esInicio, bool hoInicio) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -125,14 +157,12 @@ class _EventoFormState extends State<_EventoForm> {
       lastDate: DateTime(2030),
     );
 
-    // FUNCION PARA EL RELOJ
+    // LOGICA DE SELECCION DE HORA
     final TimeOfDay? hora = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour:00, minute: 00),
+      initialTime: const TimeOfDay(hour: 00, minute: 00),
     );
 
-
-    //IFS PARA VERIFICAR SI HAY ALGO NULO SELECCIONADO EN FECHA Y HORA
     if (picked != null) {
       setState(() {
         if (esInicio) {
@@ -143,20 +173,42 @@ class _EventoFormState extends State<_EventoForm> {
       });
     }
 
-    if(hora != null){
+    if (hora != null) {
       setState(() {
-        if(hoInicio){
+        if (hoInicio) {
           _horaInicio = hora;
-        }
-        else{
+        } else {
           _horFinal = hora;
         }
       });
     }
   }
 
+  // LOGICA DE SELECCION DE COLOR
+  void _mostrarSelectorColor() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Selecciona un color'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: _colorSeleccionado,
+            onColorChanged: (color) {
+              setState(() {
+                _colorSeleccionado = color;
+              });
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'))
+        ],
+      ),
+    );
+  }
 
-  //APARTADO DE DISEÑO DE LOS BOTONES
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -173,7 +225,7 @@ class _EventoFormState extends State<_EventoForm> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _seleccionarFecha(true,true),
+                  onPressed: () => _seleccionarFecha(true, true),
                   child: Text(_fechaInicio == null || _horaInicio == null
                       ? "Inicio"
                       : "Inicio: ${_fechaInicio!.toLocal().toString().split(' ')[0]} ${_horaInicio!.format(context)}"),
@@ -182,14 +234,23 @@ class _EventoFormState extends State<_EventoForm> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _seleccionarFecha(false,false),
+                  onPressed: () => _seleccionarFecha(false, false),
                   child: Text(_fechaFin == null || _horFinal == null
                       ? "Fin"
                       : "Fin: ${_fechaFin!.toLocal().toString().split(' ')[0]} ${_horFinal!.format(context)}"),
                 ),
-
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: _mostrarSelectorColor,
+            icon: const Icon(Icons.color_lens),
+            label: const Text("Color del evento"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _colorSeleccionado,
+              foregroundColor: Colors.white,
+            ),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
@@ -198,17 +259,18 @@ class _EventoFormState extends State<_EventoForm> {
                   _fechaInicio != null &&
                   _fechaFin != null) {
                 widget.onGuardar(
-                    _nombreController.text, _fechaInicio!, _fechaFin!);
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "El evento '${_nombreController.text}' sera el $_fechaInicio"
-                        " Y finalizara el $_fechaFin",
+                  _nombreController.text,
+                  _fechaInicio!,
+                  _fechaFin!,
+                  _colorSeleccionado,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        "Evento '${_nombreController.text}' guardado."),
                   ),
-                ),
-              );
-
+                );
+              }
             },
             child: const Text("Guardar"),
           ),
