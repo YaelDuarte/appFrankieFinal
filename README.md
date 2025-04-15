@@ -1,7 +1,7 @@
-📱 MyApp
-A new Flutter project — App whith different functions ❤️ 
+# MyApp📱
+## A new Flutter project — App whith different functions ❤️ 
 
-✨ Features:
+ # Features ✨:
 
 🖼️ Count for an image
 
