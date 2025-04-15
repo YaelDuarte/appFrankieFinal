@@ -1,16 +1,16 @@
 # MyApp📱
-## A new Flutter project — App whith different functions ❤️ 
+## A new Flutter project — App with different functions ❤️ 
 
  # Features ✨:
 
-🖼️ Count for an image
+* Count for an image 🖼️
 
-💬 Hello message for a user
+* Hello message for a user 💬
 
-🧮 Calculator
+* Calculator 🧮
 
-📍 Get coordinates
+* Get coordinates 📍
 
-📅 Simple calendar
+* Simple calendar 📅
 
-🐾 Cards for animals
+* Cards for animals 🐾
