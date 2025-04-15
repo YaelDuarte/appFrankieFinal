@@ -1,12 +1,16 @@
-# Myapp
+📱 MyApp
+A new Flutter project — App whith different functions ❤️ 
 
-A new Flutter project, simple app.
+✨ Features:
 
-# Features for this app 
+🖼️ Count for an image
 
-* Count for a image EMOJICODE: Image
-* Hello messange for a usser 
-* Calculator 
-* Get Cordinates 
-* Simple Calendar 
-* Cards for animals  
+💬 Hello message for a user
+
+🧮 Calculator
+
+📍 Get coordinates
+
+📅 Simple calendar
+
+🐾 Cards for animals
