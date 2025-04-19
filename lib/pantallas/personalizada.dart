@@ -1,58 +1,85 @@
 import 'package:flutter/material.dart';
 
-class personalizada extends StatefulWidget{
-  const personalizada({super.key,required this.title});
-  final String title;
+class personalizada extends StatelessWidget {
+  const personalizada({super.key, required String title});
+
+  final List<Map<String, String>> tarjetas = const [
+    {
+      'nombre': 'Floppa Gorro',
+      'descripcion': 'Le gusta comer camarones en coctel',
+      'imagen': 'assets/floppaWithHat.jpg',
+    },
+    {
+      'nombre': 'Dr Sexo',
+      'descripcion': 'Doctorado en sexologia',
+      'imagen': 'assets/flopaAngry.jpg',
+    },
+    {
+      'nombre': 'Abuela Carlota',
+      'descripcion': 'Experta en mudanzas express',
+      'imagen': 'assets/WhatsApp Image 2025-04-03 at 7.53.04 PM.jpeg',
+    },
+    {
+      'nombre': 'Gato agradecido',
+      'descripcion': 'Agradece al gobierno munisipal de yukatan',
+      'imagen': 'assets/gatoAgradecido.jpeg',
+    },
+  ];
 
   @override
-  State <personalizada> createState() => _PersonalizadaState();
-}
-
-class _PersonalizadaState extends State<personalizada>{
-  final TextEditingController _control = TextEditingController();
-  String _nombre = "";
-
-  void _enviarNombre(){
-    setState(() {
-      _nombre = _control.text;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Bienvenido, $_nombre")),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "BIENVENIDO",
-              style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold
-              ),
+      appBar: AppBar(title: const Text('Tarjetas de Animales')),
+      body: ListView.builder(
+        itemCount: tarjetas.length,
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (context, index) {
+          final tarjeta = tarjetas[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _control,
-              decoration: InputDecoration(
-                  labelText: "Ingresa tu nombre",
-                  border: OutlineInputBorder()
-              ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      bottomLeft: Radius.circular(20)),
+                  child: Image.asset(
+                    tarjeta['imagen']!,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tarjeta['nombre']!,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tarjeta['descripcion']!,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _enviarNombre,
-              child: Text("Enviar"),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

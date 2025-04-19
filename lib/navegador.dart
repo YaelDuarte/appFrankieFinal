@@ -39,7 +39,7 @@ class _NavegadorState extends State<Navegador> {
         case 5:
           _cuerpo = Calendario(title: "Calendario");
         case 6:
-          _cuerpo = personalizada(title: "Personalizada Tarjetas");
+          _cuerpo = personalizada(title: "Tarjetas");
         default:
           _cuerpo = Principal(title: "Principal");
       }
