@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/pantallas/principal.dart';
 
-class Otra extends StatefulWidget{
-  const Otra({super.key,required this.title});
+class Otra extends StatelessWidget {
+  const Otra({super.key, required this.title, required this.nombre});
   final String title;
+  final String nombre;
 
   @override
-  State <Otra> createState() => _OtraState();
-}
-
-class _OtraState extends State<Otra>{
-
-  @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Principal(title: "El titulo"),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(title),
+      ),
+      body: Center(
+        child: Text(
+          "Hola, $nombre 👋",
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
-
 }

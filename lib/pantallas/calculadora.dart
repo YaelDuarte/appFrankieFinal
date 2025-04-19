@@ -45,7 +45,10 @@ class _CalculadoraState extends State<Calculadora> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        backgroundColor: Colors.redAccent,
+        title: Text(widget.title),
+      ),
       body: Column(
         children: [
           Expanded(

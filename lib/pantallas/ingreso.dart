@@ -1,55 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/pantallas/segunda.dart';
 
-class bienvenida extends StatefulWidget{
-  const bienvenida({super.key,required this.title});
+class bienvenida extends StatefulWidget {
+  const bienvenida({super.key, required this.title});
   final String title;
 
   @override
-  State <bienvenida> createState() => _BienvenidaState();
+  State<bienvenida> createState() => _BienvenidaState();
 }
 
-class _BienvenidaState extends State<bienvenida>{
+class _BienvenidaState extends State<bienvenida> {
   final TextEditingController _control = TextEditingController();
-  String _nombre = "";
 
-  void _enviarNombre(){
-    setState(() {
-      _nombre = _control.text;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Bienvenido, $_nombre")),
-    );
+  void _enviarNombre() {
+    String nombre = _control.text;
+
+    if (nombre.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Otra(title: "Segunda Pantalla", nombre: nombre),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor ingresa tu nombre")),
+      );
+    }
   }
 
-@override
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),),
+      appBar: AppBar(
+        backgroundColor: Colors.amberAccent,
+        title: Text(widget.title),
+      ),
       body: Padding(
-          padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               "BIENVENIDO",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _control,
+              decoration: const InputDecoration(
+                labelText: "Ingresa tu nombre",
+                border: OutlineInputBorder(),
               ),
             ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _control,
-                decoration: InputDecoration(
-                  labelText: "Ingresa tu nombre",
-                  border: OutlineInputBorder()
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _enviarNombre,
-                child: Text("Enviar"),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _enviarNombre,
+              child: const Text("Enviar"),
             ),
           ],
         ),

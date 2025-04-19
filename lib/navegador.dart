@@ -26,7 +26,7 @@ class _NavegadorState extends State<Navegador> {
           _cuerpo = Principal(title: "Principal");
           break;
         case 1:
-          _cuerpo = Otra(title: "La otra pantalla");
+          _cuerpo = Otra(title: "La otra pantalla", nombre: "");
           break;
         case 2:
           _cuerpo = Calculadora(title: "Calculadora");

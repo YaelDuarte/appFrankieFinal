@@ -25,7 +25,10 @@ class _CalendarioState extends State<Calendario> {
     final eventos = _obtenerEventosDelDia(_fechaSeleccionada);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Calendario")),
+      appBar: AppBar(
+        backgroundColor: Colors.deepOrange,
+          title: const Text("Calendario"),
+      ),
       body: Column(
         children: [
           TableCalendar(

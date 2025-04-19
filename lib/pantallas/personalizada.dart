@@ -22,14 +22,17 @@ class personalizada extends StatelessWidget {
     {
       'nombre': 'Gato agradecido',
       'descripcion': 'Agradece al gobierno munisipal de yukatan',
-      'imagen': 'assets/gatoAgradecido.jpeg',
+      'imagen': 'assets/gatoAgradecido.jpg',
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tarjetas de Animales')),
+      appBar: AppBar(
+        backgroundColor: Color.fromRGBO(185, 33, 9, 100.0),
+        title: const Text('Tarjetas de Animales'),
+      ),
       body: ListView.builder(
         itemCount: tarjetas.length,
         padding: const EdgeInsets.all(16),
