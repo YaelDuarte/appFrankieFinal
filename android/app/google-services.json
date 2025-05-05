@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "864780094281",
+    "project_id": "appfrankie-16bee",
+    "storage_bucket": "appfrankie-16bee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864780094281:android:2f00fffc222c34c3502898",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQWFyVzIBcEDmDjF3g6wKVFPaLyFLA5XI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
