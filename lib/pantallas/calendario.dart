@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Calendario extends StatefulWidget {
   const Calendario({super.key, required this.title});
@@ -16,8 +17,72 @@ class _CalendarioState extends State<Calendario> {
 
   final Map<DateTime, List<Map<String, dynamic>>> _eventos = {};
 
+  // Función para cargar los eventos y sean visibles en el calendario
+  @override
+  void initState() {
+    super.initState();
+    _cargarEventosDesdeFirestore();
+  }
+
   List<Map<String, dynamic>> _obtenerEventosDelDia(DateTime fecha) {
     return _eventos[DateTime.utc(fecha.year, fecha.month, fecha.day)] ?? [];
+  }
+
+
+  /*
+  Funcion general donde se mandaran a cargar los eventos que han sido guardados en la BD
+  Llamando asi al nombre,fecha y su color
+   */
+  Future<void> _cargarEventosDesdeFirestore() async {
+    final snapshot = await FirebaseFirestore.instance.collection('eventos').get();
+
+    final Map<DateTime, List<Map<String, dynamic>>> eventosCargados = {};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final nombre = data['nombre'] as String;
+      final fechaInicio = (data['fechaInicio'] as Timestamp).toDate();
+      final fechaFin = (data['fechaFin'] as Timestamp).toDate();
+      final colorHex = data['color'] as String;
+      final color = Color(int.parse('FF${colorHex.substring(1)}', radix: 16));
+
+      for (DateTime d = fechaInicio;
+      !d.isAfter(fechaFin);
+      d = d.add(const Duration(days: 1))) {
+        final dia = DateTime.utc(d.year, d.month, d.day);
+        eventosCargados.putIfAbsent(dia, () => []).add({
+          'nombre': nombre,
+          'color': color,
+        });
+      }
+    }
+
+    setState(() {
+      _eventos.clear();
+      _eventos.addAll(eventosCargados);
+    });
+  }
+
+  /*
+  Esta función es para guardar los eventos que creemos en la BD, todos seguiran este proceso y
+  posteriormente se mandaran a guardar
+   */
+  Future<void> guardarEventoFirestore({
+    required String nombre,
+    required DateTime fechaInicio,
+    required DateTime fechaFin,
+    required Color color,
+  }) async {
+    final evento = {
+      "nombre": nombre,
+      "fechaInicio": Timestamp.fromDate(fechaInicio),
+      "fechaFin": Timestamp.fromDate(fechaFin),
+      "color": '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+      "fechaDia": "${fechaInicio.year}-${fechaInicio.month.toString().padLeft(2, '0')}-${fechaInicio.day.toString().padLeft(2, '0')}",
+    };
+
+    // AQUI ES DONDE SE LLAMA A LA COLECCION DE LA BD Y SE GUARDA EL EVENTO CREADO
+    await FirebaseFirestore.instance.collection('eventos').add(evento);
   }
 
   @override
@@ -27,67 +92,79 @@ class _CalendarioState extends State<Calendario> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepOrange,
-          title: const Text("Calendario"),
+        title: Text(widget.title),
       ),
-      body: Column(
-        children: [
-          TableCalendar(
-            focusedDay: _focusedDay,
-            firstDay: DateTime(2020),
-            lastDay: DateTime(2030),
-            selectedDayPredicate: (day) => isSameDay(_fechaSeleccionada, day),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _fechaSeleccionada = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            calendarFormat: CalendarFormat.month,
-            availableCalendarFormats: const {
-              CalendarFormat.month: 'Month',
-            },
-            eventLoader: _obtenerEventosDelDia,
-            calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) {
-                if (events.isNotEmpty) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: (events as List<Map<String, dynamic>>).map((evento) {
-                      return Container(
-                        width: 6,
-                        height: 6,
-                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                        decoration: BoxDecoration(
-                          color: evento['color'] as Color,
-                          shape: BoxShape.circle,
-                        ),
+      body: RefreshIndicator(
+        onRefresh: _cargarEventosDesdeFirestore,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              TableCalendar(
+                focusedDay: _focusedDay,
+                firstDay: DateTime(2020),
+                lastDay: DateTime(2030),
+                selectedDayPredicate: (day) => isSameDay(_fechaSeleccionada, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _fechaSeleccionada = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                calendarFormat: CalendarFormat.month,
+                availableCalendarFormats: const {
+                  CalendarFormat.month: 'Mes',
+                },
+                eventLoader: _obtenerEventosDelDia,
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    if (events.isNotEmpty) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: (events as List<Map<String, dynamic>>).map((evento) {
+                          return Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            decoration: BoxDecoration(
+                              color: evento['color'] as Color,
+                              shape: BoxShape.circle,
+                            ),
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
-                  );
-                }
-                return null;
-              },
-            ),
-          ),
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Eventos para hoy:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 10),
-          if (eventos.isEmpty)
-            const Text("No hay nada para el día")
-          else
-            ...eventos.map((evento) => ListTile(
-              leading: CircleAvatar(
-                backgroundColor: evento['color'] as Color,
+                    }
+                    return null;
+                  },
+                ),
               ),
-              title: Text(evento['nombre'] as String),
-            ))
-        ],
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Eventos para hoy:',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (eventos.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("No hay eventos para este día."),
+                )
+              else
+                ...eventos.map((evento) => ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: evento['color'] as Color,
+                  ),
+                  title: Text(evento['nombre'] as String),
+                )),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -106,18 +183,14 @@ class _CalendarioState extends State<Calendario> {
                   top: 20,
                 ),
                 child: _EventoForm(
-                  onGuardar: (nombre, inicio, fin, color) {
-                    setState(() {
-                      for (DateTime d = inicio;
-                      !d.isAfter(fin);
-                      d = d.add(const Duration(days: 1))) {
-                        final dia = DateTime.utc(d.year, d.month, d.day);
-                        _eventos.putIfAbsent(dia, () => []).add({
-                          'nombre': nombre,
-                          'color': color,
-                        });
-                      }
-                    });
+                  onGuardar: (nombre, inicio, fin, color) async {
+                    await guardarEventoFirestore(
+                      nombre: nombre,
+                      fechaInicio: inicio,
+                      fechaFin: fin,
+                      color: color,
+                    );
+                    await _cargarEventosDesdeFirestore();
                     Navigator.pop(context);
                   },
                 ),
@@ -131,9 +204,9 @@ class _CalendarioState extends State<Calendario> {
   }
 }
 
+// FUNCION PARA PODER CREAR EL MINICALENDARIO JUNTO CON EL RELOJ
 class _EventoForm extends StatefulWidget {
-  final void Function(String nombre, DateTime inicio, DateTime fin, Color color)
-  onGuardar;
+  final void Function(String nombre, DateTime inicio, DateTime fin, Color color) onGuardar;
 
   const _EventoForm({required this.onGuardar});
 
@@ -141,7 +214,7 @@ class _EventoForm extends StatefulWidget {
   State<_EventoForm> createState() => _EventoFormState();
 }
 
-// INICIO DE LA SELECCION DEL MINICALENDARIO PARA EVENTOS
+// FUNCION DEL BOTON DE CREAR Y GUARDAR EVENTO SOLICITANDO FECHAS Y HORAS DE INICIO Y FIN
 class _EventoFormState extends State<_EventoForm> {
   final TextEditingController _nombreController = TextEditingController();
   DateTime? _fechaInicio;
@@ -151,7 +224,7 @@ class _EventoFormState extends State<_EventoForm> {
 
   Color _colorSeleccionado = Colors.blue;
 
-  // LOGICA DE SELECCION DE FECHA
+  // FECHA DESDE DONDE INICIA, QUE MES MUESTRA Y DONDE ACABA EL CALENDARIO Y PARA SELECCIONAR FECHA
   Future<void> _seleccionarFecha(bool esInicio, bool hoInicio) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -160,7 +233,7 @@ class _EventoFormState extends State<_EventoForm> {
       lastDate: DateTime(2030),
     );
 
-    // LOGICA DE SELECCION DE HORA
+    // FUNCION PARA MOSTRAR EL RELOJ Y SELECCIONAR HORA
     final TimeOfDay? hora = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 00, minute: 00),
@@ -187,7 +260,10 @@ class _EventoFormState extends State<_EventoForm> {
     }
   }
 
-  // LOGICA DE SELECCION DE COLOR
+  /*
+  FUNCION QUE SE MUESTRA EN EL BOTON DE GUARDAR PARA QUE A LOS EVENTOS QUE VAYAMOS A CREAR
+  SE LES DE UN COLOR PARA QUE PUEDAN SER IDENTIFICADOS
+   */
   void _mostrarSelectorColor() {
     showDialog(
       context: context,
@@ -204,14 +280,13 @@ class _EventoFormState extends State<_EventoForm> {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar'))
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))
         ],
       ),
     );
   }
 
+  //LOGICA Y DISEÑO DEL BOTON DE GUARDAR
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -261,16 +336,31 @@ class _EventoFormState extends State<_EventoForm> {
               if (_nombreController.text.isNotEmpty &&
                   _fechaInicio != null &&
                   _fechaFin != null) {
+                final inicioCompleto = DateTime(
+                  _fechaInicio!.year,
+                  _fechaInicio!.month,
+                  _fechaInicio!.day,
+                  _horaInicio?.hour ?? 0,
+                  _horaInicio?.minute ?? 0,
+                );
+
+                final finCompleto = DateTime(
+                  _fechaFin!.year,
+                  _fechaFin!.month,
+                  _fechaFin!.day,
+                  _horFinal?.hour ?? 0,
+                  _horFinal?.minute ?? 0,
+                );
+
                 widget.onGuardar(
                   _nombreController.text,
-                  _fechaInicio!,
-                  _fechaFin!,
+                  inicioCompleto,
+                  finCompleto,
                   _colorSeleccionado,
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                        "Evento '${_nombreController.text}' guardado."),
+                    content: Text("Evento '${_nombreController.text}' guardado."),
                   ),
                 );
               }
@@ -283,3 +373,4 @@ class _EventoFormState extends State<_EventoForm> {
     );
   }
 }
+
