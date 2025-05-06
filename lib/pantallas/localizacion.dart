@@ -11,7 +11,7 @@ class Localizacion extends StatefulWidget {
 
 class _LocalizacionState extends State<Localizacion> {
   double? _latitud;
-  double? _longitud; // 🔹 Corrección de nombre de variable
+  double? _longitud; //  Corrección de nombre de variable
 
   Future<void> _obtenerCoordenadas() async {
     LocationPermission permiso = await Geolocator.checkPermission();
@@ -28,7 +28,7 @@ class _LocalizacionState extends State<Localizacion> {
 
     Position posicionAct = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best, // 🔹 Corrección aquí
+        accuracy: LocationAccuracy.best, // Corrección aquí
       ),
     );
 
