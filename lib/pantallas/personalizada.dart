@@ -31,7 +31,7 @@ class personalizada extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(185, 33, 9, 100.0),
-        title: const Text('Tarjetas de Animales'),
+        title: const Text('Tarjetas'),
       ),
       body: ListView.builder(
         itemCount: tarjetas.length,

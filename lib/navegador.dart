@@ -16,7 +16,7 @@ class Navegador extends StatefulWidget {
 
 class _NavegadorState extends State<Navegador> {
   int _p = 0;
-  late Widget _cuerpo; // Inicialización tardía para evitar null
+  late Widget _cuerpo; // Inicialización tardía
 
   void _cambiaPantalla(int i) {
     setState(() {
@@ -32,10 +32,10 @@ class _NavegadorState extends State<Navegador> {
           _cuerpo = Calculadora(title: "Calculadora");
           break;
         case 3:
-          _cuerpo = bienvenida(title: "Ingreso"); // Cambié a 'Bienvenida'
+          _cuerpo = bienvenida(title: "Ingreso");
           break;
         case 4:
-          _cuerpo = Localizacion(title: "Estilo GPS");
+          _cuerpo = Localizacion(title: "GPS");
         case 5:
           _cuerpo = Calendario(title: "Calendario");
         case 6:
@@ -49,7 +49,7 @@ class _NavegadorState extends State<Navegador> {
   @override
   void initState() {
     super.initState(); // Siempre llamar a super.initState()
-    _cuerpo = Principal(title: "Principal"); // Inicialización correcta
+    _cuerpo = Principal(title: "Principal");
   }
 
   @override

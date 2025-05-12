@@ -19,7 +19,7 @@ class _BienvenidaState extends State<bienvenida> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Otra(title: "Segunda Pantalla", nombre: nombre),
+          builder: (context) => Otra(title: "La otra Pantalla", nombre: nombre),
         ),
       );
     } else {
