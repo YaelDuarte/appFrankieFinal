@@ -13,4 +13,4 @@
 
 * Simple calendar 📅
 
-* Cards for animals 🐾
+* Cards for characters  🃏
